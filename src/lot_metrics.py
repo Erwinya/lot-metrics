@@ -5,10 +5,11 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 import math
 import sys
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Iterable
@@ -163,6 +164,7 @@ def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Lot inspection time-series aggregator")
     p.add_argument("--file", "-f", type=Path, required=True, help="CSV readings file")
     p.add_argument("--sigma", type=float, default=3.5, help="modified z-score threshold (default 3.5)")
+    p.add_argument("--json", type=Path, help="optional JSON output path")
     args = p.parse_args(argv)
 
     if args.sigma <= 0:
@@ -171,6 +173,16 @@ def main(argv: list[str] | None = None) -> int:
     readings = load_csv(args.file)
     aggs = aggregate(readings, args.sigma)
     print_table(aggs)
+
+    if args.json:
+        args.json.parent.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "sigma": args.sigma,
+            "source": str(args.file),
+            "series": [asdict(a) for a in aggs],
+        }
+        args.json.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        print(f"wrote {args.json}")
     return 0
 
 

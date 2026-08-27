@@ -20,6 +20,8 @@ python src/lot_metrics.py -f samples/readings.csv --json out/summary.json
 
 `--sigma` sets the modified z-score outlier threshold (default `3.5`).
 
+Browser companion for exploring the same CSV/MAD workflow: [lot-viewer](https://github.com/Erwinya/lot-viewer).
+
 ## License
 
 MIT

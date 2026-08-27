@@ -169,6 +169,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.sigma <= 0:
         raise SystemExit("--sigma must be > 0")
+    if not args.file.is_file():
+        raise SystemExit(f"file not found: {args.file}")
 
     readings = load_csv(args.file)
     aggs = aggregate(readings, args.sigma)

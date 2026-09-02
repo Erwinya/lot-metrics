@@ -1,5 +1,6 @@
 from datetime import datetime
 from pathlib import Path
+import json
 
 import pytest
 
@@ -33,3 +34,38 @@ def test_load_csv_requires_columns(tmp_path: Path) -> None:
 def test_main_missing_file() -> None:
     with pytest.raises(SystemExit, match="file not found"):
         lot_metrics.main(["-f", "missing.csv"])
+
+
+def test_parse_ts_accepts_z_suffix() -> None:
+    ts = lot_metrics.parse_ts("2026-08-05T08:00:00Z")
+    assert ts.year == 2026
+    assert ts.hour == 8
+
+
+def test_main_rejects_non_positive_sigma(tmp_path: Path) -> None:
+    path = tmp_path / "readings.csv"
+    path.write_text(
+        "timestamp,lot_id,metric,value\n2026-08-05T08:00:00Z,L1,m,1.0\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(SystemExit, match="--sigma must be > 0"):
+        lot_metrics.main(["-f", str(path), "--sigma", "0"])
+
+
+def test_main_writes_json_export(tmp_path: Path) -> None:
+    csv_path = tmp_path / "readings.csv"
+    csv_path.write_text(
+        "\n".join(
+            [
+                "timestamp,lot_id,metric,value",
+                "2026-08-05T08:00:00Z,LOT-1,thickness_um,100.0",
+                "2026-08-05T08:05:00Z,LOT-1,thickness_um,100.5",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    json_path = tmp_path / "summary.json"
+    assert lot_metrics.main(["-f", str(csv_path), "--json", str(json_path)]) == 0
+    payload = json.loads(json_path.read_text(encoding="utf-8"))
+    assert payload["sigma"] == 3.5
+    assert len(payload["series"]) == 1

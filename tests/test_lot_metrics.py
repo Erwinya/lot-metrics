@@ -69,3 +69,18 @@ def test_main_writes_json_export(tmp_path: Path) -> None:
     payload = json.loads(json_path.read_text(encoding="utf-8"))
     assert payload["sigma"] == 3.5
     assert len(payload["series"]) == 1
+
+
+def test_modified_z_single_value() -> None:
+    assert lot_metrics.modified_z([42.0]) == [0.0]
+
+
+def test_aggregate_constant_series_has_no_outliers() -> None:
+    readings = [
+        lot_metrics.Reading(datetime(2026, 8, 5, 8, i), "LOT-1", "thickness_um", 100.0)
+        for i in range(5)
+    ]
+    aggs = lot_metrics.aggregate(readings, sigma=3.5)
+    assert len(aggs) == 1
+    assert aggs[0].stdev == 0.0
+    assert aggs[0].outliers == []

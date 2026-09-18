@@ -12,6 +12,13 @@ CSV columns: `timestamp`, `lot_id`, `metric`, `value`.
 python src/lot_metrics.py -f samples/readings.csv
 ```
 
+Windows PowerShell:
+
+```powershell
+python src\lot_metrics.py -f samples\readings.csv
+python src\lot_metrics.py -f samples\readings.csv --json out\summary.json
+```
+
 Install locally (optional):
 
 ```bash
@@ -19,9 +26,19 @@ pip install -e .
 lot-metrics -f samples/readings.csv
 ```
 
+```powershell
+pip install -e .
+lot-metrics -f samples\readings.csv
+```
+
 ## Development
 
 ```bash
+pip install -e ".[dev]"
+pytest
+```
+
+```powershell
 pip install -e ".[dev]"
 pytest
 ```
